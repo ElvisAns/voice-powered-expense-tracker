@@ -1,14 +1,7 @@
 <template>
-  <div>
-    <Home />
-  </div>
+  <NuxtLoadingIndicator :throttle="0" />
+  <UContainer>
+    <NuxtPage />
+  </UContainer>
+  <UNotifications />
 </template>
-
-<script setup>
-  useHead({
-    link:{
-      rel : "manifest",
-      href : "/manifest.json"
-    }
-  })
-</script>
