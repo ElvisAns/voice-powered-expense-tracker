@@ -1,6 +1,7 @@
 <template>
-    <div class="h-screen my-0 max-w-[800px] mx-auto overflow-hidden relative">
+    <div class="h-screen my-0 max-w-[800px] mx-auto overflow-hidden relative pb-20">
         <div>
+            {{ expenses }}
             <USelect v-model="language" :options="languages" />
             <div>{{ speech_error }}</div>
             <h1>Speech to text</h1>
@@ -8,16 +9,22 @@
             <p class="feedback">{{ feedback }}</p>
             <UTextarea v-model="output"></UTextarea>
         </div>
-        <div class="flex justify-center absolute bottom-10 bg-slate-900 rounded-md p-5 mx-5">
+        <div class="flex justify-center fixed right-0 bottom-20 bg-slate-900 rounded-xl p-5 mx-5">
             <UButton :class="micAnimated ? 'relative mic-talking' : ''" @mousedown="startSpeechRecognition"
                 color="black" @mouseup="stopSpeechRecognition" variant="outline" icon="i-heroicons-microphone"
                 size="xl" />
         </div>
+        <BottomBar />
     </div>
 </template>
 
 <script setup>
 import { onMounted, ref, onBeforeUnmount, watch } from 'vue';
+import { collection, query, where, getDocs, doc, setDoc, serverTimestamp, onSnapshot, addDoc } from "firebase/firestore";
+const userUid = useCookie("userId");
+const { $db } = useNuxtApp();
+
+const expenses = ref([]);
 
 const languages = ref([
     {
@@ -38,6 +45,7 @@ const micAnimated = ref(false);
 const feedback = ref('');
 
 var recognition = null;
+var expensesCollection = null;
 
 const startSpeechRecognition = () => {
     micAnimated.value = true;
@@ -49,12 +57,22 @@ const stopSpeechRecognition = () => {
     recognition.stop();
 }
 
-watch(language, (newlanguage)=>{
+watch(language, (newlanguage) => {
     recognition.lang = newlanguage
     hints.value = 'Language changed to' + newlanguage;
 })
 
-onMounted(() => {
+onMounted(async () => {
+    expensesCollection = collection($db, "userExpenses");
+    const q = query(expensesCollection, where("user", "==", userUid.value));
+
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+        // doc.data() is never undefined for query doc snapshots
+        expenses.value.push(doc.data());
+    });
+
+
     var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
     var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
     recognition = new SpeechRecognition();
@@ -80,13 +98,15 @@ onMounted(() => {
         const { data, pending, error, refresh } = await $fetch('/api/chatbot', {
             method: "POST",
             body: { prompt: output.value },
-            onResponse({ request, response, options }) {
+            async onResponse({ request, response, options }) {
                 const api_response = response._data.response;
                 if (api_response.error) {
                     feedback.value = `error : ${api_response.error}`
                 }
                 else {
                     let data = "";
+                    await addDoc(expensesCollection, { user: userUid.value, ...api_response });
+                    expenses.value.push({ user: userUid.value, ...api_response })
                     for (const key in api_response) {
                         data += `${key}:${api_response[key]}`
                     }
@@ -121,7 +141,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-    recognition.stop();
+    if (recognition) recognition.stop();
 })
 </script>
 

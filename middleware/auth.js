@@ -1,11 +1,11 @@
 
 import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "firebase/auth";
 export default defineNuxtRouteMiddleware((to, from) => {
-  const token = useCookie('token');
-  if (to.path == "/" && !token.value) {
+  const userId = useCookie('userId');
+  if (to.path == "/" && !userId.value) {
     return navigateTo("/signin");
   }
-  if (to.path == "/signin" && token.value) {
+  if (to.path == "/signin" && userId.value) {
     return navigateTo("/");
   }
 })
