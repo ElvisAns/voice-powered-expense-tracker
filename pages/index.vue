@@ -1,13 +1,13 @@
 <template>
-  <div class="px-5">
-    <div class="flex justify-between">
-        <h1 class="text-left text-2xl pl-0 font-bold">Hello <span class="text-green-100">{{ userInfos.displayName }}!</span>
+  <div class="px-5 pt-5">
+    <div class="flex justify-between pb-4">
+        <h1 class="text-left text-2xl font-bold">Hello <span class="text-green-100">{{ userInfos.displayName }}!</span>
         </h1>
         <div class="p-3 min-w-[120px]">
             <USelect v-model="language" :options="languages" />
         </div>
     </div>
-    <p class="pl-0 text-left">Last 7days summary</p>
+    <p class="pb-2 text-left">Last 7days summary</p>
     <p v-if="feedback_message" class="bg-yellow-200 text-black">{{ feedback_message }}</p>
     <SkeletonLoading v-if="!feedback_message.length && !Object.keys(accounts_status).length" />
     <HomeCards v-if="Object.keys(accounts_status).length" :accounts_status="accounts_status" />
@@ -23,9 +23,8 @@
         <h2 class="py-4 text-slate-200">Recent transactions</h2>
         <TransactionsList :transactions="expenses" />
     </div>
-    <div class="flex justify-center fixed right-0 bottom-20 bg-slate-900 rounded-xl p-5 mx-5">
-        <UButton :class="micAnimated ? 'relative mic-talking' : ''" @mousedown="startSpeechRecognition" color="black"
-            @mouseup="stopSpeechRecognition" variant="outline" icon="i-heroicons-microphone" size="xl" />
+    <div class="flex justify-center fixed right-0 bottom-20 bg-slate-900 rounded-xl p-5 mx-5" @mousedown="startSpeechRecognition" @mouseup="stopSpeechRecognition" >
+        <UButton :class="micAnimated ? 'relative mic-talking' : ''" color="white" variant="solid" icon="i-heroicons-microphone" size="xl" />
     </div>
   </div>
 </template>
@@ -230,12 +229,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-h1,
-p {
-    font-family: sans-serif;
-    text-align: center;
-    padding: 20px;
-}
 
 ul {
     margin: 0;
