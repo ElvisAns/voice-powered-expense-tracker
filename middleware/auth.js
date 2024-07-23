@@ -1,5 +1,4 @@
 
-import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "firebase/auth";
 export default defineNuxtRouteMiddleware((to, from) => {
   const userId = useCookie('userId');
   if (to.path == "/" && !userId.value) {
@@ -7,5 +6,8 @@ export default defineNuxtRouteMiddleware((to, from) => {
   }
   if (to.path == "/signin" && userId.value) {
     return navigateTo("/");
+  }
+  if (to.path == "/signout" && !userId.value) {
+    return navigateTo("/signin");
   }
 })

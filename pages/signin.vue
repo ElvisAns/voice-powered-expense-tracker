@@ -23,7 +23,7 @@
                     </button>
                 </div>
             </div>
-            <Footer/>
+            <Footer />
         </div>
     </div>
 </template>
@@ -34,10 +34,12 @@ const { $auth } = useNuxtApp();
 definePageMeta({
     middleware: ['auth'],
 });
+const userId = useCookie('userId');
 
 const signin = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup($auth, provider).then(async (result) => {
+        userId.value = result.user.uid;
         await navigateTo("/");
     }).catch((error) => {
         console.log(error)

@@ -1,6 +1,8 @@
 <template>
   <NuxtLoadingIndicator :throttle="0" />
-  <NuxtPage />
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
   <UNotifications />
 </template>
 
