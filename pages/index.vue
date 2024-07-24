@@ -23,7 +23,7 @@
         <h2 class="py-4 text-slate-200">Recent transactions</h2>
         <TransactionsList :transactions="expenses" />
     </div>
-    <div class="flex justify-center fixed right-0 bottom-20 bg-slate-900 rounded-xl p-5 mx-5" @mousedown="startSpeechRecognition" @mouseup="stopSpeechRecognition" >
+    <div class="flex justify-center fixed right-0 bottom-20 bg-slate-900 rounded-xl p-5 mx-5" @mousedown="startSpeechRecognition" @touchstart="startSpeechRecognition" @touchend="stopSpeechRecognition" @mouseup="stopSpeechRecognition" >
         <UButton :class="micAnimated ? 'relative mic-talking' : ''" color="white" variant="solid" icon="i-heroicons-microphone" size="xl" />
     </div>
   </div>
