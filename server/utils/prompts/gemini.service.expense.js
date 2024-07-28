@@ -14,7 +14,9 @@ async function run(userinput) {
         if my input does not describe anything related to income/expense or has some missing information, dont return the json, just tell me that some information are missing
         example : 
         my input : "Hello, today i received my salary onto my bank account", 
-        your response : {"error":"You did not specify any amount, please be specific"}`
+        your response : {"error":"You did not specify any amount, please be specific"}
+        Make the outputs in JSON format.
+        `
         }, {
             text : `Here is my input ${userinput}`
         }
