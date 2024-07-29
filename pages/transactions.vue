@@ -17,7 +17,7 @@
             <div>
                 <span class="block">{{ expense.item }}</span>
                 <span class="block text-slate-400 text-sm">{{ expense.date }}</span>
-                <span class="block text-slate-400 text-sm">{{ expense.account }}</span>
+                <span class="block text-slate-400 text-sm capitalize">{{ expense.account }}</span>
                 <span class="block text-slate-400 text-sm">{{ expense.category }}</span>
             </div>
             <div class="grow text-right">

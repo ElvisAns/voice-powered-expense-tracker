@@ -1,36 +1,41 @@
 <template>
-  <div class="px-5 pt-5">
-    <div class="flex justify-between pb-4">
-        <h1 class="text-left text-2xl font-bold">Hello <span class="text-green-100">{{ userInfos.displayName }}!</span>
-        </h1>
-        <div class="p-3 min-w-[120px]">
-            <USelect v-model="language" :options="languages" />
+    <div class="px-5 pt-5">
+        <div class="flex justify-between pb-4">
+            <h1 class="text-left text-2xl font-bold">Hello <span class="text-green-100">{{ userInfos.displayName
+                    }}!</span>
+            </h1>
+            <div class="p-3 min-w-[120px]">
+                <USelect v-model="language" :options="languages" />
+            </div>
+        </div>
+        <p class="pb-2 text-left">Last 7days summary</p>
+        <p v-if="feedback_message" class="bg-yellow-200 text-black min-h-16 px-2 py-5">{{ feedback_message }}</p>
+        <SkeletonLoading v-if="!feedback_message.length && !Object.keys(accounts_status).length" />
+        <HomeCards v-if="Object.keys(accounts_status).length" :accounts_status="accounts_status" />
+        <div class="mb-1 flex flex-col gap-2 mt-10">
+            <p v-show="speech_error">{{ speech_error }}</p>
+            <p v-show="hints" class="hints">{{ hints }}</p>
+            <p v-show="feedback" class="feedback">{{ feedback }}</p>
+            <UTextarea v-model="output"></UTextarea>
+            <UButton size="xl" class="mr-auto mt-5" @click="submit_entry()" :loading="fetching_in_progress"
+                loading-icon="i-heroicons-sparkles">Save</UButton>
+        </div>
+        <div>
+            <h2 class="py-4 text-slate-200">Recent transactions</h2>
+            <TransactionsList :transactions="expenses" />
+        </div>
+        <div class="flex justify-center fixed right-0 bottom-20 bg-slate-900 rounded-xl p-5 mx-5"
+            @mousedown="startSpeechRecognition" @touchstart="startSpeechRecognition" @touchend="stopSpeechRecognition"
+            @mouseup="stopSpeechRecognition">
+            <UButton :class="micAnimated ? 'relative mic-talking' : ''" color="white" variant="solid"
+                icon="i-heroicons-microphone" size="xl" />
         </div>
     </div>
-    <p class="pb-2 text-left">Last 7days summary</p>
-    <p v-if="feedback_message" class="bg-yellow-200 text-black">{{ feedback_message }}</p>
-    <SkeletonLoading v-if="!feedback_message.length && !Object.keys(accounts_status).length" />
-    <HomeCards v-if="Object.keys(accounts_status).length" :accounts_status="accounts_status" />
-    <div class="mb-1 flex flex-col gap-2 mt-10">
-        <p v-show="speech_error">{{ speech_error }}</p>
-        <p v-show="hints" class="hints">{{ hints }}</p>
-        <p v-show="feedback" class="feedback">{{ feedback }}</p>
-        <UTextarea v-model="output"></UTextarea>
-        <UButton size="xl" class="mr-auto mt-5" @click="submit_entry()" :loading="fetching_in_progress"
-            loading-icon="i-heroicons-sparkles">Save</UButton>
-    </div>
-    <div>
-        <h2 class="py-4 text-slate-200">Recent transactions</h2>
-        <TransactionsList :transactions="expenses" />
-    </div>
-    <div class="flex justify-center fixed right-0 bottom-20 bg-slate-900 rounded-xl p-5 mx-5" @mousedown="startSpeechRecognition" @touchstart="startSpeechRecognition" @touchend="stopSpeechRecognition" @mouseup="stopSpeechRecognition" >
-        <UButton :class="micAnimated ? 'relative mic-talking' : ''" color="white" variant="solid" icon="i-heroicons-microphone" size="xl" />
-    </div>
-  </div>
 </template>
 
 <script setup>
 import Ajv from 'ajv';
+import MiniSearch from 'minisearch'
 import { onMounted, ref, onBeforeUnmount, watch } from 'vue';
 import { collection, query, where, getDocs, doc, setDoc, serverTimestamp, orderBy, addDoc, Timestamp, limit, onSnapshot } from "firebase/firestore";
 const userUid = useCookie("userId");
@@ -40,14 +45,14 @@ const feedback_message = ref("");
 const fetching_in_progress = ref(false);
 
 definePageMeta({
-  middleware: ['auth'],
-  layout: 'home-users'
+    middleware: ['auth'],
+    layout: 'home-users'
 });
 useHead({
-  link: {
-    rel: "manifest",
-    href: "/manifest.json"
-  }
+    link: {
+        rel: "manifest",
+        href: "/manifest.json"
+    }
 })
 const ajv = new Ajv();
 
@@ -71,6 +76,7 @@ const output = ref('If you can\'t use the microphone please describe your expens
 const hints = ref('');
 const micAnimated = ref(false);
 const feedback = ref('');
+const exisiting_accounts = ref([]);
 
 var recognition = null;
 var expensesCollection = null;
@@ -121,6 +127,34 @@ async function update_last_7days() {
         else {
             feedback_message.value = "You did not record any transaction within the last 7 days!"
         }
+        oneWeekExpenses = []
+    });
+}
+let miniSearch = null;
+
+async function getExistingAccounts() {
+    let accounts = [];
+    const accountsQuery = query(expensesCollection, where("user", "==", userUid.value));
+    onSnapshot(accountsQuery, async (querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            const entry = doc.data();
+            const { account } = entry;
+            accounts.push({ id: doc.id, account });
+        });
+        if (accounts.length) {
+            try {
+                exisiting_accounts.value = accounts;
+                miniSearch = new MiniSearch({
+                    fields: ['account'], // fields to index for full-text search
+                    storeFields: ['account'] // fields to return with search results
+                })
+                miniSearch.addAll(accounts)
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+        accounts = [];
     });
 }
 
@@ -134,6 +168,8 @@ onMounted(async () => {
         expenses.value.push(entry);
     });
     update_last_7days();
+    getExistingAccounts();
+
     var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
     var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
     recognition = new SpeechRecognition();
@@ -208,6 +244,10 @@ const submit_entry = async () => {
                 const validate = ajv.compile(schema);
                 const valid = validate(api_response);
                 if (valid) {
+                    let search = miniSearch.search(api_response.account, { prefix: true, fuzzy: 0.2 })
+                    if(search.length>0){
+                        api_response.account = search[0].account;
+                    }
                     const docData = { user: userUid.value, ...api_response, date: Timestamp.now() };
                     await addDoc(expensesCollection, docData);
                     expenses.value = [{ ...docData, date: new Date(docData.date.seconds * 1000).toLocaleDateString("en-US", date_format_options) }, ...expenses.value]
@@ -229,7 +269,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-
 ul {
     margin: 0;
 }
