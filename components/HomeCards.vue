@@ -1,5 +1,5 @@
 <template>
-    <div class="splide home-cards">
+    <div class="splide home-cards pb-10">
         <div class="splide__track">
             <div class="splide__list">
                 <div v-for="(account_data, account_name) in accounts_status"
