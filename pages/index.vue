@@ -244,9 +244,11 @@ const submit_entry = async () => {
                 const validate = ajv.compile(schema);
                 const valid = validate(api_response);
                 if (valid) {
-                    let search = miniSearch.search(api_response.account, { prefix: true, fuzzy: 0.2 })
-                    if(search.length>0){
-                        api_response.account = search[0].account;
+                    if (miniSearch) {
+                        let search = miniSearch.search(api_response.account, { prefix: true, fuzzy: 0.2 })
+                        if (search.length > 0) {
+                            api_response.account = search[0].account;
+                        }
                     }
                     const docData = { user: userUid.value, ...api_response, date: Timestamp.now() };
                     await addDoc(expensesCollection, docData);
