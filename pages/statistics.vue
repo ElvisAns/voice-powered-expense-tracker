@@ -47,8 +47,8 @@ async function update_last_7days() {
             const entry = doc.data();
             entry.date = new Date(entry.date.seconds * 1000).toLocaleDateString("en-US", date_format_options);
             oneWeekExpensesPlain.push(entry);
-            const { amount, type, account, currency } = entry;
-            oneWeekExpenses.push({ amount, type, account, currency });
+            const { amount, type, account, currency, category, date, item } = entry;
+            oneWeekExpenses.push({ amount, type, account, currency, category, date, item });
         });
         expenses.value = oneWeekExpensesPlain;
         if (oneWeekExpenses.length) {
