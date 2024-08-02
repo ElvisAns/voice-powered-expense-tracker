@@ -250,6 +250,7 @@ const submit_entry = async () => {
                             api_response.account = search[0].account;
                         }
                     }
+                    api_response.currency = api_response.currency.toUpperCase()
                     const docData = { user: userUid.value, ...api_response, date: Timestamp.now() };
                     await addDoc(expensesCollection, docData);
                     expenses.value = [{ ...docData, date: new Date(docData.date.seconds * 1000).toLocaleDateString("en-US", date_format_options) }, ...expenses.value]
