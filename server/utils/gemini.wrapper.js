@@ -10,9 +10,8 @@ async function execute(parts) {
         contents: [{ role: "user", parts }],
     });
     const response = result.response.text();
-    
     const index1 = response.indexOf("```json");
-    if(index1){
+    if (index1 !== 0) { //better, if reponse dont start with json, we return as is
         return response;
     }
     const index2 = response.lastIndexOf("```");
